@@ -26,8 +26,17 @@ ui <- fluidPage(
   sidebarPanel(
     actionButton("help_button", "Clique aqui para ajuda", icon = icon("info-circle")),
     selectInput("sistema", "Selecione o sistema de abastecimento de água:", choices = NULL, selected = NULL, multiple = FALSE),
-    selectInput("shapeType", "Choose Shape Type:",
-                choices = list("Forests" = "green", "Water" = "blue", "Urban" = "gray")),
+    selectInput("MappingInput", "O que você deseja desenhar?",
+                choices = c(
+                  "Áreas verdes",
+                  "Corpos d'água",
+                  "Áreas urbanas",
+                  "Escola",
+                  "Indústria",
+                  "Agricultura",
+                  "Pastagem",
+                  "Silvicultura"
+                )),
     actionButton("calc_dist", "Calcular Distancia"),
     DTOutput("features_table"),
     downloadButton("download_shapefile", "Baixar camadas")  # Download button for shapefile
