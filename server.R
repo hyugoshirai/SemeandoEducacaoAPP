@@ -1,19 +1,28 @@
 # Define server logic
 server <- function(input, output, session) {
   
-  ### 1. Initialize leaflet map
+  ### 1. Initialize leaflet map ----
   output$map <- renderLeaflet({
         initializeMap(ProjectArea = `Sistema Cantareira`, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`)
   })
   
-  ### 2. Update the basemap when selection changes
+  ### 2. Update the basemap when selection changes ----
   observeEvent(input$basemap, {
     leafletProxy("map") %>%
       clearTiles() %>%
       addProviderTiles(providers[[input$basemap]])
   })
   
-  # Update the features list when a new feature is drawn
+  ### Observe drawing features on the map ----
+  # Observe inputs on mapping dropdown and update the draw toolbar colors
+  observe({
+    label <- input$MappingInput
+    color <- LabeltoColor(label)
+    fill_color <- color
+    updateDrawToolbar(session, color, fill_color)
+  })
+
+  # Update the features list when a new feature is drawn 
   observeEvent(input$map_draw_new_feature, {
     handleNewFeature(input, input$map_draw_new_feature)
     # Render features table
@@ -41,6 +50,7 @@ server <- function(input, output, session) {
     output$features_table <- rendered_table
   })
   
+  ### Download handler for shapefile download ----
   output$download_shapefile <- downloadHandler(
     filename = function() {
       paste("drawn_features", Sys.Date(), ".zip", sep = "")
@@ -116,29 +126,48 @@ server <- function(input, output, session) {
     }
   })
   
-  # Calculate the distance when the button is clicked
   observeEvent(input$calc_dist, {
-    
-    # Get the drawn point
-    drawn_point <- input$map_draw_new_feature
-    req(drawn_point)
-    
-    # Get the coordinates of the drawn point
-    coords <- drawn_point$geometry$coordinates
-    
-    # Calculate the distance using the function
-    sistema_outp <- calculate_distance(input$sistema, c(coords[[1]], coords[[2]]), `Pontos de captação`)
-    print (sistema_outp)
-    # Output the distance
-    output$distance_output <- renderText({
-      paste("Distancia até o centro do sistema:", round(sistema_outp$distance/100, 2), " quilômetros")
+    features_list <- features_list()
+    print(features_list)
+    tryCatch({
+      # Filter to get only features where Tipo == "Escola"
+      filtered_features <- lapply(features_list, function(feature) {
+        if (any(feature$Tipo == "Escola")) {
+          return(feature)
+        } else {
+          return(NULL)
+        }
+      })
+      
+      # Remove NULL values
+      filtered_features <- filtered_features[!sapply(filtered_features, is.null)]
+      
+      if (length(filtered_features) == 0) {
+        stop("No 'Escola' points found.")
+      }
+      
+      # Calculate the centroid of "Escola" features
+      centroid <- st_centroid(st_union(do.call(rbind, filtered_features)))
+      coords <- st_coordinates(centroid)
+      
+      # Calculate the distance using the function
+      sistema_outp <- calculate_distance("Escola", c(coords[1], coords[2]), `Pontos de captação`)
+      print(sistema_outp)
+      
+      # Output the distance
+      output$distance_output <- renderText({
+        paste("Distancia até o centro do sistema:", round(as.numeric(sistema_outp$distance), 2), "quilômetros")
+      })
+      
+      # Update added point to list
+      updateList(sistema_outp$drawn_point, "escola", list = dinamic_added)
+      updateList(sistema_outp$centroid, input$sistema, list = dinamic_added)
+      
+      # Update added points to map
+      addCaptacaoToMap(sistema_outp, input$sistema)
+      
+    }, error = function(e) {
+      showNotification("Por favor, mapeie a escola", type = "error")
     })
-    
-    # update added point to list
-    updateList (sistema_outp$drawn_point, "escola", dinamic_added)
-    updateList (sistema_outp$centroid, input$sistema, dinamic_added)
-    
-    # update added points to map
-    addCaptacaoToMap(sistema_outp, input$sistema)
-  })
+  }) 
 }

@@ -107,3 +107,18 @@ Property_df <- data.frame(
   new_value = c(100, 80, 20),
   stringsAsFactors = FALSE
 )
+
+# This function defines the labels and colors for different mapping features.
+# Mapping from labels to colors
+LabeltoColor <- function(label) {
+  switch(label,
+         "Áreas verdes" = "green",
+         "Corpos d'água" = "blue",
+         "Áreas urbanas" = "gray",
+         "Escola" = "purple",
+         "Indústria" = "orange",
+         "Agricultura" = "yellow",
+         "Pastagem" = "brown",
+         "Silvicultura" = "darkgreen",
+         "black")  # Default color if label does not match
+}

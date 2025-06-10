@@ -73,8 +73,8 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
     opacity = 1,
     fillOpacity = 0.5,
     group = "Unidades de conservação",
-    popup = ~paste("Nome da UC: ", NOME_UC1, "Categoria: ", CATEGORI3, "C
-                   odigo: ", CODIGO_U11)
+    popup = ~paste("Nome da UC: ", NOME_UC1, "Categoria: ", CATEGORI3, 
+                   "Codigo: ", CODIGO_U11)
     
   ) %>%
     # Add a legend for the special areas
@@ -88,16 +88,10 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
     # Draw tools
     addDrawToolbar(
       polylineOptions = TRUE,
-      polygonOptions = drawPolygonOptions(showArea = TRUE, 
-                                          metric = TRUE,
-                                          shapeOptions = drawShapeOptions(clickable = TRUE), 
-                                          repeatMode = FALSE),
+      polygonOptions = drawPolygonOptions(),
       # circleOptions = drawCircleOptions(),
       circleOptions = FALSE,
-      rectangleOptions = drawRectangleOptions(showArea = TRUE, 
-                                              metric = TRUE,
-                                              shapeOptions = drawShapeOptions(clickable = TRUE), 
-                                              repeatMode = FALSE),
+      rectangleOptions = drawRectangleOptions(),
       markerOptions = drawMarkerOptions(), # Enable marker drawing
       circleMarkerOptions = FALSE, 
       singleFeature = FALSE,

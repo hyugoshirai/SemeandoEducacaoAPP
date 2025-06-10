@@ -39,10 +39,12 @@ handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
     
     feature_sf <- st_sfc(st_linestring(coords_matrix)) # Create the sf object for polyline
   }
-  print(feature_sf)
+  
   feature_id <- feature$properties$`_leaflet_id`# Extract the feature ID
   feature_name <- paste("Feature", feature_id) # Initialize a feature name
-  feature_sf <- st_sf(id = feature_id, name = feature_name, geometry = feature_sf) # Add the name as a column in the sf object
+
+  # Create the sf object with the Mapping_Input as an additional column
+  feature_sf <- st_sf(id = feature_id, name = feature_name, geometry = feature_sf, Tipo = input$MappingInput)
   
   current_features <- features_list() # Retrieve the current features list
   current_features[[as.character(feature_id)]] <- feature_sf # Add the new feature to the list
@@ -84,9 +86,10 @@ handleFeatureEdit <- function(input, edited_features) {
   }
   
   # Retrieve and update the current features list
-  current_features <- features_list()
-  current_features[[as.character(edited_feature_id)]]$geometry <- edited_feature_sf
-  features_list(current_features)
+  # current_features <- features_list()
+  # current_features[[as.character(edited_feature_id)]]$geometry <- edited_feature_sf
+  # features_list(current_features)
+  updateList(edited_feature_sf, as.character(edited_feature_id), features_list) # Update the feature in the list
   
   # Update the data table and feature labels
   updateFeaturesTable()

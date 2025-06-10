@@ -115,7 +115,8 @@ raster_df <- reactiveVal() # For storing raster data frames
 raster_df_list <- reactiveVal(list()) # For storing raster data frames list
 rendered_table <- renderDT({
   features_table_data()
-}, editable = list(target = "cell", disable = list(columns = c(0, 1, 3))), selection = 'multiple', server = FALSE) # Render the features table
+}, editable = list(target = "cell", disable = list(columns = c(0, 1, 3, 4))), selection = 'multiple', server = FALSE) 
+# Render the features table
 result_raster <- reactiveVal(NULL) # For storing result raster
 shapefile_data <- reactiveValues(shp = NULL, colors = list()) # For storing the uploaded shapefile data
 shapefile_data_processed <- reactiveVal(NULL) # For storing the processed shapefile data
