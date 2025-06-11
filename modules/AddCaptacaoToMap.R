@@ -6,27 +6,28 @@ addCaptacaoToMap <- function(sistema_outp, sistema_name) {
   coords_drawn <- sistema_outp$drawn_point$geometry$coordinates
   addShp <- leafletProxy("map") %>%
     clearGroup("escola") %>%
-    clearGroup(sistema_name) %>%
+    clearGroup("sistema") %>%
     clearGroup("linha") %>%
     clearGroup("pontos") %>%
     addCircleMarkers(data = sistema_outp$drawn_point, 
                      group = "escola", 
-                     popup = "ESCOLA", color = "red") %>%
+                     popup = "ESCOLA", color = "purple") %>%
     addCircleMarkers(data = sistema_outp$centroid, 
                      color = "blue",
                      popup = paste (
                        "Nome do sistema: ", sistema_name),
-                     group = sistema_name) %>%
+                     group = "sistema") %>%
     addCircleMarkers(data = sistema_outp$selected_points,
                      color = "green",
                      popup = paste (
                        "Nome do sistema: ", sistema_outp$selected_points$nm_captaca, "<br>",
                        "Tipo de capitação: ", sistema_outp$selected_points$tp_captaca,"<br>",
-                       "Nome do ponto :", sistema_outp$selected_points$nm_fantasi),
+                       "Nome do ponto: ", sistema_outp$selected_points$nm_fantasi, "<br>",
+                       "Tipo de tratamento: ", sistema_outp$selected_points$tp_tratamen),
                      group = "pontos")|> 
     addPolylines(lng = c(st_coordinates(sistema_outp$drawn_point)[1], st_coordinates(sistema_outp$centroid)[1]),
                  lat = c(st_coordinates(sistema_outp$drawn_point)[2], st_coordinates(sistema_outp$centroid)[2]),
-                 color = "purple",
+                 color = "red",
                  group = "linha") |> 
     addLayersControl(
       baseGroups = c("OpenStreetMap", "Satellite"), # Always include base groups

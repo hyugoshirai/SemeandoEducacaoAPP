@@ -1,7 +1,7 @@
 ### 1. Function to initialize the map with the land use raster image
 ### This function creates a leaflet map with the land use raster image and other layers
 
-initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandUse_rst) {
+initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandUse_rst, legend_title = "Legenda", label, legend_df) {
 
   # # aggregate the raster for faster visualization
   factor <- 5
@@ -120,4 +120,12 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
               lat1 = min(st_bbox(ProjectArea)[c("ymin")]), 
               lng2 = max(st_bbox(ProjectArea)[c("xmax")]), 
               lat2 = max(st_bbox(ProjectArea)[c("ymax")])
-    )}
+    )%>%
+    addLegend(
+      position = "bottomleft",
+      title = legend_title,
+      colors = unique(legend_df$color),
+      labels = unique(legend_df$label),
+      opacity = 1
+    )
+}

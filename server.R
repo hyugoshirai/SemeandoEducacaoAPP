@@ -3,7 +3,7 @@ server <- function(input, output, session) {
   
   ### 1. Initialize leaflet map ----
   output$map <- renderLeaflet({
-        initializeMap(ProjectArea = `Sistema Cantareira`, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`)
+        initializeMap(ProjectArea = `Sistema Cantareira`, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`, "Pontos mapeados", label, color_mapping)
   })
   
   ### 2. Update the basemap when selection changes ----
@@ -117,57 +117,29 @@ server <- function(input, output, session) {
     updateSelectInput(session, "sistema", choices = sistema_names)
   })
   
-  # Print name of sistema selected
-  observe({
-    selected_sistema <- input$sistema
-    if (!is.null(selected_sistema)) {
-      print(paste("Selected sistema:", selected_sistema))
-      print (`Pontos de captação` %>% filter(nm_captaca == selected_sistema)) 
-    }
-  })
-  
   observeEvent(input$calc_dist, {
-    features_list <- features_list()
-    print(features_list)
     tryCatch({
-      # Filter to get only features where Tipo == "Escola"
-      filtered_features <- lapply(features_list, function(feature) {
-        if (any(feature$Tipo == "Escola")) {
-          return(feature)
-        } else {
-          return(NULL)
-        }
-      })
-      
-      # Remove NULL values
-      filtered_features <- filtered_features[!sapply(filtered_features, is.null)]
-      
-      if (length(filtered_features) == 0) {
-        stop("No 'Escola' points found.")
-      }
+      # Filter features by type "Escola"
+      features_list <- features_list()
+      filtered_features <- FilterFeaturebyTipo (features_list, "Escola")
       
       # Calculate the centroid of "Escola" features
       centroid <- st_centroid(st_union(do.call(rbind, filtered_features)))
       coords <- st_coordinates(centroid)
       
       # Calculate the distance using the function
-      sistema_outp <- calculate_distance("Escola", c(coords[1], coords[2]), `Pontos de captação`)
-      print(sistema_outp)
-      
+      dist_sist_outp <- calculate_distance(input$sistema, c(coords[1], coords[2]), `Pontos de captação`)
+
       # Output the distance
       output$distance_output <- renderText({
-        paste("Distancia até o centro do sistema:", round(as.numeric(sistema_outp$distance), 2), "quilômetros")
+        paste("Distancia até o centro do sistema:", round(as.numeric(dist_sist_outp$distance)/1000, 2), "quilômetros")
       })
       
-      # Update added point to list
-      updateList(sistema_outp$drawn_point, "escola", list = dinamic_added)
-      updateList(sistema_outp$centroid, input$sistema, list = dinamic_added)
-      
-      # Update added points to map
-      addCaptacaoToMap(sistema_outp, input$sistema)
+      #   # Update added points to map
+      addCaptacaoToMap(dist_sist_outp, input$sistema)
       
     }, error = function(e) {
-      showNotification("Por favor, mapeie a escola", type = "error")
+      showNotification("Por favor, localize sua escola no mapa.", type = "error")
     })
   }) 
 }
