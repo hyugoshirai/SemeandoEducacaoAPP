@@ -5,7 +5,7 @@ updateDrawToolbar <- function(session, color, fill_color) {
   custom_icon <-   makeAwesomeIcon(
     icon = "home",
     library = "glyphicon",
-    markerColor = color,
+    markerColor = color, # Possible values are "red", "darkred", "lightred", "orange", "beige", "green", "darkgreen", "lightgreen", "blue", "darkblue", "lightblue", "purple", "darkpurple", "pink", "cadetblue", "white", "gray", "lightgray", "black"
     iconColor = color,
     spin = FALSE,
     extraClasses = NULL,

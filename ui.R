@@ -22,18 +22,18 @@ ui <- fluidPage(
      setInterval(checkifrunning, 100);'
   ),
   useShinyjs(),  # Initialize shinyjs
-  titlePanel("Mapeamento"),
+  titlePanel("Semeando Água"),
   sidebarPanel(
     actionButton("help_button", "Clique aqui para ajuda", icon = icon("info-circle")),
     selectInput("sistema", "Selecione o sistema de abastecimento de água:", choices = NULL, selected = NULL, multiple = FALSE),
     selectInput("MappingInput", "O que você deseja desenhar?",
                 choices = c(
+                  "Escola",
+                  "Agricultura",
+                  "Áreas urbanas",
                   "Áreas verdes",
                   "Corpos d'água",
-                  "Áreas urbanas",
-                  "Escola",
                   "Indústria",
-                  "Agricultura",
                   "Pastagem",
                   "Silvicultura"
                 )),

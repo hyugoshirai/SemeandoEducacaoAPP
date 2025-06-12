@@ -41,7 +41,7 @@ handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
   }
   
   feature_id <- feature$properties$`_leaflet_id`# Extract the feature ID
-  feature_name <- paste("Feature", feature_id) # Initialize a feature name
+  feature_name <- paste("Feição #", feature_id) # Initialize a feature name
 
   # Create the sf object with the Mapping_Input as an additional column
   feature_sf <- st_sf(id = feature_id, name = feature_name, geometry = feature_sf, Tipo = input$MappingInput)

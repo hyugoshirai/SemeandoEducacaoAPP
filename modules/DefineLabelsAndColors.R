@@ -111,7 +111,7 @@ Property_df <- data.frame(
 # =================== Biomes
 # Define labels and colors
 # 3 color scale, blind friendly
-Biomes_colors <- c("#FF0000", "#FFFF00", "#00FF00", "#0000FF", "#FF00FF", "#00FFFF")
+Biomes_colors <- c("#007849", "#FEDD65", "#F07423", "#388D3C", "#D9B197", "#193D83")
 
 Biomes_labels <- c("Amazônia", "Caatinga", "Cerrado", "Mata Atlântica", "Pampa", "Pantanal" )
 # Create the color factor palette
@@ -120,24 +120,24 @@ Biomes_pal <- colorFactor(palette = Biomes_colors, na.color = "transparent", dom
 # =================== Data frame for label and color mapping
 color_mapping <- data.frame(
   label = c(
+    "Escola",
+    "Agricultura",
+    "Áreas urbanas",
     "Áreas verdes",
     "Corpos d'água",
-    "Áreas urbanas",
-    "Escola",
     "Indústria",
-    "Agricultura",
     "Pastagem",
     "Silvicultura"
   ),
   color = c(
-    "green",
-    "blue",
-    "gray",
     "purple",
-    "orange",
-    "yellow",
-    "brown",
-    "darkgreen"
+    "pink",
+    "red",
+    "darkgreen",
+    "blue",
+    "black",
+    "beige",
+    "orange"
   ),
   stringsAsFactors = FALSE
 )
