@@ -3,7 +3,7 @@ server <- function(input, output, session) {
   
   ### 1. Initialize leaflet map ----
   output$map <- renderLeaflet({
-        initializeMap(ProjectArea = `Sistema Cantareira`, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`, "Pontos mapeados", label, color_mapping)
+    initializeMap(ProjectArea = `Sistema Cantareira`, legend_title = "Legend", label = label, legend_df = color_mapping, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`)
   })
   
   ### 2. Update the basemap when selection changes ----
@@ -17,11 +17,13 @@ server <- function(input, output, session) {
   # Observe inputs on mapping dropdown and update the draw toolbar colors
   observe({
     label <- input$MappingInput
-    color <- LabeltoColor(label)
+    color_info <- color_mapping %>% filter(label == !!label)
+    color <- color_info$color
     fill_color <- color
+    
     updateDrawToolbar(session, color, fill_color)
   })
-
+  
   # Update the features list when a new feature is drawn 
   observeEvent(input$map_draw_new_feature, {
     handleNewFeature(input, input$map_draw_new_feature)
@@ -117,11 +119,24 @@ server <- function(input, output, session) {
     updateSelectInput(session, "sistema", choices = sistema_names)
   })
   
+  # Print name of sistema selected
+  observe({
+    selected_sistema <- input$sistema
+    if (!is.null(selected_sistema)) {
+      print(paste("Selected sistema:", selected_sistema))
+      print (`Pontos de captação` %>% filter(nm_captaca == selected_sistema)) 
+    }
+  })
+  
   observeEvent(input$calc_dist, {
     tryCatch({
-      # Filter features by type "Escola"
+      
       features_list <- features_list()
+      print(features_list)
       filtered_features <- FilterFeaturebyTipo (features_list, "Escola")
+      
+      # Print the filtered list
+      print(filtered_features)
       
       # Calculate the centroid of "Escola" features
       centroid <- st_centroid(st_union(do.call(rbind, filtered_features)))
@@ -129,11 +144,16 @@ server <- function(input, output, session) {
       
       # Calculate the distance using the function
       dist_sist_outp <- calculate_distance(input$sistema, c(coords[1], coords[2]), `Pontos de captação`)
-
+      print(dist_sist_outp)
+      
       # Output the distance
       output$distance_output <- renderText({
-        paste("Distancia até o centro do sistema:", round(as.numeric(dist_sist_outp$distance)/1000, 2), "quilômetros")
+        paste("Distancia até o centro do sistema:", round(as.numeric(dist_sist_outp$distance), 2), "quilômetros")
       })
+      
+      #   # Update added point to list
+      # updateList(sistema_outp$drawn_point, "escola", list = dinamic_added)
+      # updateList(sistema_outp$centroid, input$sistema, list = dinamic_added)
       
       #   # Update added points to map
       addCaptacaoToMap(dist_sist_outp, input$sistema)

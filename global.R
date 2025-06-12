@@ -78,6 +78,9 @@ for (script_file in script_files) {
 
 ### Initialize objects ----
 
+# Global variable to store names of assigned files
+default_layers_names <- c()
+
 # Create objects from sheet 
 AssignObjectsFromGsheet("https://docs.google.com/spreadsheets/d/1eRSEmnMIIEcS6EUkhOguy_mCRpZRN1vy/edit?usp=sharing&ouid=102538809962333046552&rtpof=true&sd=true")
 
@@ -86,7 +89,7 @@ default_shapefiles <- list() # List for vectors
 default_layers <- list() # List for rasters
 
 # Add the objects to the reactive lists based on their type
-CategorizeAndReprojectObjectsInGlobalEnv()
+CategorizeAndReprojectDefaultObjects()
 
 # Define custom control names
 custom_control <- setdiff (c(names (default_layers), names (default_shapefiles)),
