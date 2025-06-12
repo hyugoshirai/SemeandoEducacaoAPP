@@ -1,8 +1,8 @@
 ### 1. Function to initialize the map with the land use raster image
 ### This function creates a leaflet map with the land use raster image and other layers
 
-initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandUse_rst, legend_title = "Legenda", label, legend_df) {
-
+initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, ProtectedAreas, LandUse_rst, UGRHI, Biomes,  legend_title = "Legenda", label, legend_df) {
+  
   # # aggregate the raster for faster visualization
   factor <- 5
   Uso_do_Solo_agg <- raster::aggregate(LandUse_rst, fact = factor, fun = modal)
@@ -20,17 +20,41 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
               group = "Sistema Cantareira"
   ) |>
     #==================== StateLimits ====================
-  # Add Área do Projeto layer
+  # Add State limits layer
   addPolygons(data = StateLimits,
-              color = "grey",    # Border color of polygons
+              color = "black",    # Border color of polygons
               weight = 1,        # Border width of polygons
               opacity = 1,       # Border opacity
               group = "Limites estaduais",
-              fillOpacity = 0.5,
+              fillColor = "grey",
+              fillOpacity = 0.8,
               popup = ~paste("Nome da UF: ", NM_UF)
   ) |>
+    #==================== CityLimits ====================
+  # Add Área do Projeto layer
+  addPolygons(data = CityLimits,
+              color = "blue",    # Border color of polygons
+              weight = 1,        # Border width of polygons
+              opacity = 1,       # Border opacity
+              group = "Limites municipais",
+              fillColor = "grey",
+              fillOpacity = 0.8,
+              popup = ~paste("Nome da Município: ", NM_MUN)
+  ) |>
+    #==================== UGRHI ====================
+  # Add Área do Projeto layer
+  addPolygons(data = UGRHI,
+              color = "grey",    # Border color of polygons
+              weight = 1,        # Border width of polygons
+              opacity = 1,       # Border opacity
+              group = "UGRHI",
+              fillColor = "lightblue",
+              fillOpacity = 0.8,
+              popup = ~paste("Código da UGRHI: ", Codigo, "<br>",
+                             "Nome da UGRHI: ", Nome)
+  ) |>
     #==================== Phito ====================
-  #  #Add properties layer
+  #  #Add Phito layer
   addPolygons(data = Phito,
               color = ~Phito_pal (Phito_labels),
               weight = 1,
@@ -39,7 +63,7 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
               group = "Fitofisionomias",
               # show in the popup thhe desc_subcl describing subclasses and area
               popup = ~legenda) |>
-    # properties legend
+    # Phito legend
     addLegend(
       position = "bottomleft",
       colors = Phito_colors,
@@ -54,6 +78,24 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
                  project = TRUE,
                  method = 'ngb'
   ) |> 
+    #==================== Biomes ====================
+  #  #Add Biomes layer
+  addPolygons(data = Biomes,
+              color = ~Biomes_pal (Biomes_labels),
+              weight = 1,
+              opacity = 1,
+              fillOpacity = 0.5,
+              group = "Biomas",
+              # show in the popup thhe desc_subcl describing subclasses and area
+              popup = ~Bioma) |>
+    # Biomes legend
+    addLegend(
+      position = "bottomleft",
+      colors = Biomes_colors,
+      labels = Biomes_labels,
+      title = "Biomas",
+      group = "Biomas"
+    ) |>
     # Land use legend
     addLegend(
       position = "bottomleft",
@@ -64,7 +106,7 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
       opacity = 1,
       group = "Uso do solo"  # Group the legend with the raster layer
     )%>% 
-  #   #==================== Áreas Protegidas ====================
+    #   #==================== Áreas Protegidas ====================
   #Add Areas Protegidas layer
   addPolygons(
     data = ProtectedAreas,
@@ -115,7 +157,7 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, ProtectedAreas, LandU
       overlayGroups = c(custom_control),  # Ensure unique layers are listed
       options = layersControlOptions(collapsed = TRUE)
     ) |> 
-    hideGroup(c("Limites estaduais", "Unidades de conservação", "Uso do solo", "Fitofisionomias")) |> 
+    hideGroup(c("Limites estaduais", "Unidades de conservação", "Uso do solo", "Fitofisionomias", "UGRHI", "Biomas", "Limites municipais")) |> 
     fitBounds(lng1 = min(st_bbox(ProjectArea)[c("xmin")]), 
               lat1 = min(st_bbox(ProjectArea)[c("ymin")]), 
               lng2 = max(st_bbox(ProjectArea)[c("xmax")]), 
