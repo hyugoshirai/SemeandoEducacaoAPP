@@ -3,7 +3,7 @@ server <- function(input, output, session) {
   
   ### 1. Initialize leaflet map ----
   output$map <- renderLeaflet({
-    initializeMap(ProjectArea = `Sistema Cantareira`, legend_title = "Legend", label = label, legend_df = color_mapping, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`, CityLimits = `Limites municipais`, UGRHI = `UGRHI`, Biomes = `Biomas`)
+    initializeMap(ProjectArea = `Sistema Cantareira`, legend_title = "Legenda dos pontos mapeados", label = label, legend_df = color_mapping, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`, CityLimits = `Limites municipais`, UGRHI = `UGRHI`, Biomes = `Biomas`)
   })
   
   ### 2. Update the basemap when selection changes ----
@@ -12,8 +12,8 @@ server <- function(input, output, session) {
       clearTiles() %>%
       addProviderTiles(providers[[input$basemap]])
   })
-  
-  ### Observe drawing features on the map ----
+
+    ### Observe drawing features on the map ----
   # Observe inputs on mapping dropdown and update the draw toolbar colors
   observe({
     label <- input$MappingInput
@@ -148,7 +148,7 @@ server <- function(input, output, session) {
       
       # Output the distance
       output$distance_output <- renderText({
-        paste("Distancia até o centro do sistema:", round(as.numeric(dist_sist_outp$distance), 2), "quilômetros")
+        paste("Distancia até o centro do sistema:", round(as.numeric(dist_sist_outp$distance), 2)/1000, "quilômetros")
       })
       
       #   # Update added point to list
