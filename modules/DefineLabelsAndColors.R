@@ -108,33 +108,16 @@ Property_df <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# This function defines the labels and colors for different mapping features.
-# Mapping from labels to colors
-# LabeltoColor <- function(label) {
-#   switch(label,
-#          "Áreas verdes" = "green",
-#          "Corpos d'água" = "blue",
-#          "Áreas urbanas" = "gray",
-#          "Escola" = "purple",
-#          "Indústria" = "orange",
-#          "Agricultura" = "yellow",
-#          "Pastagem" = "brown",
-#          "Silvicultura" = "darkgreen",
-#          "black")  # Default color if label does not match
-# }
-# 
-# list_of_drawing_attributes <- c(
-#   "Áreas verdes",
-#   "Corpos d'água",
-#   "Áreas urbanas",
-#   "Escola",
-#   "Indústria",
-#   "Agricultura",
-#   "Pastagem",
-#   "Silvicultura"
-# )
-# 
-# # Data frame for label and color mapping
+# =================== Biomes
+# Define labels and colors
+# 3 color scale, blind friendly
+Biomes_colors <- c("#FF0000", "#FFFF00", "#00FF00", "#0000FF", "#FF00FF", "#00FFFF")
+
+Biomes_labels <- c("Amazônia", "Caatinga", "Cerrado", "Mata Atlântica", "Pampa", "Pantanal" )
+# Create the color factor palette
+Biomes_pal <- colorFactor(palette = Biomes_colors, na.color = "transparent", domain = Biomes_labels)
+
+# =================== Data frame for label and color mapping
 color_mapping <- data.frame(
   label = c(
     "Áreas verdes",

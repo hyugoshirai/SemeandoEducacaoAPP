@@ -3,7 +3,7 @@ server <- function(input, output, session) {
   
   ### 1. Initialize leaflet map ----
   output$map <- renderLeaflet({
-    initializeMap(ProjectArea = `Sistema Cantareira`, legend_title = "Legend", label = label, legend_df = color_mapping, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`)
+    initializeMap(ProjectArea = `Sistema Cantareira`, legend_title = "Legend", label = label, legend_df = color_mapping, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`, CityLimits = `Limites municipais`, UGRHI = `UGRHI`, Biomes = `Biomas`)
   })
   
   ### 2. Update the basemap when selection changes ----
