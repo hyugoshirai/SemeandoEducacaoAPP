@@ -1,7 +1,7 @@
 # Function to classify objects in the global environment and reproject sf objects
-CategorizeAndReprojectObjectsInGlobalEnv <- function() {
+CategorizeAndReprojectDefaultObjects <- function() {
   # Get all object names in the global environment
-  all_objects <- ls(envir = .GlobalEnv)
+  all_objects <- default_layers_names
   
   # Loop through each object to check its class and categorize
   for (object_name in all_objects) { 

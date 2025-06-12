@@ -18,8 +18,8 @@ ReadGDriveRaster <- function(shared_link) {
   # Read the raster data directly from the URL using terra
   raster <- rast(myurl)
   
-  # Check and print raster information
-  print(raster)
+  # # Check and print raster information
+  # print(raster)
 
   return(raster)
 }
