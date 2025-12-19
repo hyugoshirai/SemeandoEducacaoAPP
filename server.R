@@ -1,6 +1,8 @@
 # Define server logic
 server <- function(input, output, session) {
-  
+  session$onSessionEnded(function() {
+    stopApp()
+  })
   ### 1. Initialize leaflet map ----
   output$map <- renderLeaflet({
     initializeMap(ProjectArea = `Sistema Cantareira`, legend_title = "Legenda dos pontos mapeados", label = label, legend_df = color_mapping, Phito = Fitofisionomias, StateLimits = `Limites estaduais`, ProtectedAreas = `Unidades de conservação`, LandUse_rst = `Uso do solo`, CityLimits = `Limites municipais`, UGRHI = `UGRHI`, Biomes = `Biomas`)
@@ -13,6 +15,44 @@ server <- function(input, output, session) {
       addProviderTiles(providers[[input$basemap]])
   })
 
+  # Overlay toggling logic (works for overlays only)
+  observe({
+    checked <- input$overlays
+    proxy <- leafletProxy("map")
+    for (g in names(legends_list)) {
+      leg <- legends_list[[g]]
+      if (!is.null(checked) && g %in% checked) {
+        showGroup(proxy, g)
+        if (!is.null(leg$pal) && !is.null(leg$values) && length(leg$values) > 0) {
+          # Standard palette legend
+          legend_args <- list(
+            layerId = leg$layerId,
+            position = "bottomright",
+            pal = leg$pal,
+            values = leg$values,
+            title = leg$title,
+            opacity = 1
+          )
+          if (!is.null(leg$labFormat)) legend_args$labFormat <- leg$labFormat
+          do.call(addLegend, c(list(proxy), legend_args))
+        } else if (!is.null(leg$pal) && is.null(leg$values)) {
+          # Single color legend
+          proxy %>% addLegend(
+            layerId = leg$layerId,
+            position = "bottomright",
+            colors = leg$pal,
+            labels = leg$title,
+            opacity = 1
+          )
+        }
+        # If neither, skip legend for this group
+      } else {
+        hideGroup(proxy, g)
+        proxy %>% removeControl(layerId = leg$layerId)
+      }
+    }
+  })
+  
     ### Observe drawing features on the map ----
   # Observe inputs on mapping dropdown and update the draw toolbar colors
   observe({

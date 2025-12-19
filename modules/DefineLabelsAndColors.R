@@ -88,25 +88,25 @@ IIC_df <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# =================== Property
-# Define the raster values directly
-Property_values <- c(3, 2, 1)
-
-# Define labels and colors
-# 3 color scale, blind friendly
-Property_colors <- c("#FE0000", "#FFFF11", "#3C78D8")
-
-Property_labels <- c("Grande", "Média", "Pequena")
-# Create the color factor palette
-Property_pal <- colorFactor(palette = Property_colors, na.color = "transparent", domain = Property_labels)
-
-# Create the data frame with static values
-Property_df <- data.frame(
-  raster_value = Property_values,
-  Property = factor(Property_values, levels = Property_values, labels = Property_labels),
-  new_value = c(100, 80, 20),
-  stringsAsFactors = FALSE
-)
+# # =================== Property
+# # Define the raster values directly
+# Property_values <- c(3, 2, 1)
+# 
+# # Define labels and colors
+# # 3 color scale, blind friendly
+# Property_colors <- c("#FE0000", "#FFFF11", "#3C78D8")
+# 
+# Property_labels <- c("Grande", "Média", "Pequena")
+# # Create the color factor palette
+# Property_pal <- colorFactor(palette = Property_colors, na.color = "transparent", domain = Property_labels)
+# 
+# # Create the data frame with static values
+# Property_df <- data.frame(
+#   raster_value = Property_values,
+#   Property = factor(Property_values, levels = Property_values, labels = Property_labels),
+#   new_value = c(100, 80, 20),
+#   stringsAsFactors = FALSE
+# )
 
 # =================== Biomes
 # Define labels and colors
@@ -140,4 +140,67 @@ color_mapping <- data.frame(
     "orange"
   ),
   stringsAsFactors = FALSE
+)
+
+# =================== Legends
+# Create a list of legends
+
+legends_list <- list(
+  "Unidades de conservação" = list(
+    pal = spa_pal,
+    values = unique(`Unidades de conservação`$Tipo),
+    title = "Unidades de Conservação",
+    layerId = "legend_Unidades de conservação",
+    labFormat = labelFormat()
+  ),
+  "Uso do solo" = list(
+    pal = land_use_pal,
+    values = lu_raster_values,
+    title = "Uso do solo",
+    layerId = "legend_Uso do solo",
+    labFormat = labelFormat(transform = function(x) landuse_df$land_use[match(x, landuse_df$raster_value)]),
+    df = landuse_df
+  ),
+  "Sistema Cantareira" = list(
+    pal = "red",
+    values = NULL,
+    title = "Sistema Cantareira",
+    layerId = "legend_Sistema Cantareira",
+    labFormat = NULL
+  ),
+  "Limites municipais" = list(
+    pal = "grey",
+    values = NULL,
+    title = "Limites municipais",
+    layerId = "legend_Limites municipais",
+    labFormat = NULL
+  ),
+  "Fitofisionomias" = list(
+    pal = Phito_pal,
+    values = Phito_labels,
+    title = "Fitofisionomias",
+    layerId = "legend_Fitofisionomias",
+    labFormat = labelFormat()
+  ),
+  "Biomas" = list(
+    pal = Biomes_pal,
+    values = Biomes_labels,
+    title = "Biomas",
+    layerId = "legend_Biomas",
+    labFormat = labelFormat()
+  ),
+  "Limites estaduais" = list(
+    pal = "black",
+    values = NULL,
+    title = "Limites estaduais",
+    layerId = "legend_Limites estaduais",
+    labFormat = NULL
+  ),
+  "UGRHI" = list(
+    pal = "lightblue",
+    values = NULL,
+    title = "UGRHI",
+    layerId = "legend_UGRHI",
+    labFormat = NULL
+  )
 )
