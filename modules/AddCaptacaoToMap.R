@@ -28,10 +28,5 @@ addCaptacaoToMap <- function(sistema_outp, sistema_name) {
     addPolylines(lng = c(st_coordinates(sistema_outp$drawn_point)[1], st_coordinates(sistema_outp$centroid)[1]),
                  lat = c(st_coordinates(sistema_outp$drawn_point)[2], st_coordinates(sistema_outp$centroid)[2]),
                  color = "red",
-                 group = "linha") |> 
-    addLayersControl(
-      baseGroups = c("OpenStreetMap", "Satellite"), # Always include base groups
-      overlayGroups = c(custom_control),  # Ensure all layers, including new ones, are listed
-      options = layersControlOptions(collapsed = TRUE)
-    )
+                 group = "linha") 
 }

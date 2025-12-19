@@ -1,67 +1,25 @@
-# # Check if 'remotes' package is installed
-# if (!requireNamespace("remotes", quietly = TRUE)) {
-#   install.packages("remotes")
-# }
-# 
-# # Function to check if a package is installed, if not, install it
-# install_if_needed <- function(package, github_repo = NULL) {
-#   if (!requireNamespace(package, quietly = TRUE)) {
-#     if (!is.null(github_repo)) {
-#       message(paste(package, "is not installed. Installing from GitHub repository:", github_repo))
-#       remotes::install_github(github_repo)
-#     } else {
-#       message(paste(package, "is not installed. Installing from CRAN."))
-#       install.packages(package)
-#     }
-#   } else {
-#     message(paste(package, "is already installed."))
-#   }
-# }
-# 
-# # Check and install the 'icons' package from GitHub if not already installed
-remotes::install_github("mitchelloharawild/icons")
-# install_if_needed("icons", github_repo = "mitchelloharawild/icons")
-# 
-# # Packages list
-# packages <- c("shiny", "leaflet", "raster", "DT", "shinyWidgets", 
-#               "sf", "leafem", "mapview", "gdistance", "dplyr", 
-#               "shinyFiles", "zip", "leaflet.extras", 
-#               "shinyjs", "classInt", "leastcostpath", "terra", "units", "tools",
-#               "shinyalert", "icons", "fontawesome", "RColorBrewer")
-# # library(icons)
-# # download_fontawesome() #only if needed
-# 
-# # Instalar pacotes que não estão instalados
-# new_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
-# if (length(new_packages)) {
-#   install.packages(new_packages)
-# }
-
 # Load required packages ----
-library("classInt")
+# library("classInt")
 library("dplyr")
 library ("DT")
-# library("fontawesome")
 library("gdistance")
-# library("icons")
-library("leafem")
+# library("leafem")
 library("leaflet")
 library("leaflet.extras")
 library("leastcostpath")
-library("mapview")
+# library("mapview")
 library("raster")
-library("RColorBrewer")
+# library("RColorBrewer")
 library("shiny")
-library("shinyFiles")
-library("shinyWidgets")
-library("shinyalert")
+# library("shinyFiles")
+# library("shinyWidgets")
+# library("shinyalert")
 library("shinyjs")
 library("sf")
 library("terra")
-library("tools")
-library("units")
+# library("tools")
+# library("units")
 library("zip")
-# terraOptions(memfrac = 0.9, progress  = 1) # Set terra options
 
 #### Source Modules
 # Define the directory containing the R script files
@@ -69,6 +27,9 @@ modules_directory <- "modules"
 
 # List all .R files in the directory
 script_files <- list.files(modules_directory, pattern = "\\.R$", full.names = TRUE)
+# Modules to be sourced after initializing objects
+late_objects_modules <- c("DefineLabelsAndColors.R")
+script_files <- script_files[!basename(script_files) %in% late_objects_modules] # Exclude late objects modules
 
 # Loop through each R file and source it
 for (script_file in script_files) {
@@ -90,6 +51,12 @@ default_layers <- list() # List for rasters
 
 # Add the objects to the reactive lists based on their type
 CategorizeAndReprojectDefaultObjects()
+
+# Now source late modules that depend on the initialized objects
+for (late_module in late_objects_modules) {
+  source(file.path(modules_directory, late_module))
+  print(paste("Sourced late module:", late_module))
+}
 
 # Define custom control names
 custom_control <- setdiff (c(names (default_layers), names (default_shapefiles)),

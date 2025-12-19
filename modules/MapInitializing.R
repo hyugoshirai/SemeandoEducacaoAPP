@@ -39,7 +39,7 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, Protected
               group = "Limites municipais",
               fillColor = "grey",
               fillOpacity = 0.8,
-              popup = ~paste("Nome da Município: ", NM_MUN)
+              popup = ~paste("Nome do Município: ", NM_MUN)
   ) |>
     #==================== UGRHI ====================
   # Add Área do Projeto layer
@@ -63,14 +63,6 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, Protected
               group = "Fitofisionomias",
               # show in the popup thhe desc_subcl describing subclasses and area
               popup = ~legenda) |>
-    # Phito legend
-    addLegend(
-      position = "bottomleft",
-      colors = Phito_colors,
-      labels = Phito_labels,
-      title = "Fitofisionomias",
-      group = "Fitofisionomias"
-    ) |>
     #==================== Uso_do_Solo ====================
   addRasterImage(Uso_do_Solo_agg,
                  colors = land_use_pal,
@@ -88,24 +80,6 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, Protected
               group = "Biomas",
               # show in the popup thhe desc_subcl describing subclasses and area
               popup = ~Bioma) |>
-    # Biomes legend
-    addLegend(
-      position = "bottomleft",
-      colors = Biomes_colors,
-      labels = Biomes_labels,
-      title = "Biomas",
-      group = "Biomas"
-    ) |>
-    # Land use legend
-    addLegend(
-      position = "bottomleft",
-      pal = land_use_pal,
-      values = sort(unique(values(LandUse_rst))),
-      title = "Uso do solo",
-      labFormat = labelFormat(transform = function(x) landuse_df$land_use[match(x, landuse_df$raster_value)]),
-      opacity = 1,
-      group = "Uso do solo"  # Group the legend with the raster layer
-    )%>% 
     #   #==================== Áreas Protegidas ====================
   #Add Areas Protegidas layer
   addPolygons(
@@ -119,14 +93,6 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, Protected
                    "Codigo: ", CODIGO_U11)
     
   ) %>%
-    # Add a legend for the special areas
-    addLegend(
-      pal = spa_pal,
-      values = spa_labels,
-      title = "Unidades de conservação",
-      position = "bottomleft",
-      group = "Unidades de conservação"  # Group the legend with the raster layer
-    ) |>
     # Draw tools
     addDrawToolbar(
       polylineOptions = TRUE,
@@ -140,7 +106,7 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, Protected
       editOptions = editToolbarOptions()
     ) %>%
     addScaleBar(
-      position = "bottomright",
+      position = "topright",
       options = scaleBarOptions(imperial = FALSE, metric = TRUE)
     ) %>%
     addSearchOSM(
@@ -151,12 +117,6 @@ initializeMap <- function(ProjectArea, Phito, StateLimits, CityLimits, Protected
       primaryLengthUnit = "meters",
       primaryAreaUnit = "sqmeters"
     ) %>%
-    # Layer control
-    addLayersControl(
-      baseGroups = c("OpenStreetMap", "Satellite"),
-      overlayGroups = c(custom_control),  # Ensure unique layers are listed
-      options = layersControlOptions(collapsed = TRUE)
-    ) |> 
     hideGroup(c("Limites estaduais", "Unidades de conservação", "Uso do solo", "Fitofisionomias", "UGRHI", "Biomas", "Limites municipais")) |> 
     fitBounds(lng1 = min(st_bbox(ProjectArea)[c("xmin")]), 
               lat1 = min(st_bbox(ProjectArea)[c("ymin")]), 

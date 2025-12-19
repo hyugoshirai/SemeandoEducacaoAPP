@@ -4,12 +4,18 @@
 ### feature - the feature drawn on the map
 ### proj_crs - the projected coordinate reference system (CRS) for area calculations
 ### geo_crs - the geographic CRS for displaying the feature
+
+# Function to get color based on type
+get_tipo_color <- function(tipo) {
+  col <- color_mapping$color[match(tipo, color_mapping$label)]
+  ifelse(is.na(col), "#2c3e50", col)
+}
+
 handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
   feature_type <- feature$properties$feature_type  # Get the type of the geometry
   if (feature_type == "rectangle" | feature_type == "polygon") {
     coords <- feature$geometry$coordinates[[1]] # Extract the coordinates
     coords_matrix <- do.call(rbind, lapply(coords, unlist)) # Convert coordinates to matrix
-    
     feature_sf <- st_sfc(st_polygon(list(coords_matrix))) # Create the sf object
   } else if (feature_type == "marker") {
     coords <- unlist(feature$geometry$coordinates) # Extract and unlist the coordinates for point
@@ -41,10 +47,17 @@ handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
   }
   
   feature_id <- feature$properties$`_leaflet_id`# Extract the feature ID
-  feature_name <- paste("Feição #", feature_id) # Initialize a feature name
-
+  feature_name <- paste("Feature", feature_id) # Initialize a feature name
+  
   # Create the sf object with the Mapping_Input as an additional column
-  feature_sf <- st_sf(id = feature_id, name = feature_name, geometry = feature_sf, Tipo = input$MappingInput)
+  # feature_sf <- st_sf(id = feature_id, name = feature_name, geometry = feature_sf, Tipo = input$MappingInput)
+  feature_sf <- st_sf(
+    id = feature_id,
+    name = feature_name,
+    Tipo = input$MappingInput,
+    color = get_tipo_color(input$MappingInput),
+    geometry = feature_sf
+  )
   
   current_features <- features_list() # Retrieve the current features list
   current_features[[as.character(feature_id)]] <- feature_sf # Add the new feature to the list
@@ -53,50 +66,62 @@ handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
   updateFeaturesTable() # Update the data table
   updateFeatureLabels() # Update feature labels
   
-  showNotification(paste("Feature", feature_id, "has been added"), duration = 5, type = "message") # Inform the user that the feature has been added
+  showNotification(paste("Feição", feature_id, "foi criada"), duration = 5, type = "message") # Inform the user that the feature has been added
 }
+
+
+
 
 ### 2. Handle feature edit
 ### This function handles the feature edit event
 ### input: input - the input object from the Shiny app
 ### edited_features - the edited feature object
-handleFeatureEdit <- function(input, edited_features) {
-  # Extract the feature ID and coordinates
+handleFeatureEdit <- function(input, edited_features, geo_crs = 4326) {
   edited_feature_id <- edited_features$features[[1]]$properties$`_leaflet_id`
   feature_type <- edited_features$features[[1]]$geometry$type
   edited_coords <- edited_features$features[[1]]$geometry$coordinates
   
-  # Initialize the sf object based on the feature type
+  # Build sfc with CRS
   if (feature_type == "Point") {
-    coords <- unlist(edited_coords)  # Flatten the list if necessary
-    edited_feature_sf <- st_sfc(st_point(coords))
-    
+    coords <- unlist(edited_coords)
+    edited_sfc <- sf::st_sfc(sf::st_point(coords), crs = geo_crs)
   } else if (feature_type == "LineString") {
-    # Convert the coordinates to a matrix
     edited_coords_matrix <- do.call(rbind, lapply(edited_coords, unlist))
-    edited_feature_sf <- st_sfc(st_linestring(edited_coords_matrix))
-    
+    edited_sfc <- sf::st_sfc(sf::st_linestring(edited_coords_matrix), crs = geo_crs)
   } else if (feature_type == "Polygon") {
-    edited_coords <- edited_features$features[[1]]$geometry$coordinates[[1]] # Extract the coordinates
-    edited_coords_matrix <- do.call(rbind, lapply(edited_coords, unlist)) # Convert coordinates to matrix
-    edited_feature_sf <- st_sfc(st_polygon(list(edited_coords_matrix))) # Create the sf object
+    edited_coords <- edited_coords[[1]]
+    edited_coords_matrix <- do.call(rbind, lapply(edited_coords, unlist))
+    edited_sfc <- sf::st_sfc(sf::st_polygon(list(edited_coords_matrix)), crs = geo_crs)
   } else {
     showNotification("Unsupported feature type.", type = "error")
     return()
   }
   
-  # Retrieve and update the current features list
-  # current_features <- features_list()
-  # current_features[[as.character(edited_feature_id)]]$geometry <- edited_feature_sf
-  # features_list(current_features)
-  updateList(edited_feature_sf, as.character(edited_feature_id), features_list) # Update the feature in the list
+  # Replace geometry in the existing sf row
+  current <- features_list()
+  fid <- as.character(edited_feature_id)
+  if (!is.null(current[[fid]]) && inherits(current[[fid]], "sf")) {
+    feat <- current[[fid]]
+    sf::st_geometry(feat) <- edited_sfc
+    current[[fid]] <- feat
+    features_list(current)
+  } else {
+    # Fallback: wrap into a minimal sf with id/name/Tipo preserved as NA if missing
+    feat <- sf::st_sf(
+      id = fid,
+      name = if ("name" %in% names(current[[fid]])) current[[fid]]$name else NA_character_,
+      Tipo = if ("Tipo" %in% names(current[[fid]])) current[[fid]]$Tipo else NA_character_,
+      color = if ("color" %in% names(current[[fid]])) current[[fid]]$color else "#2c3e50",
+      geometry = edited_sfc
+    )
+    current[[fid]] <- feat
+    features_list(current)
+  }
   
-  # Update the data table and feature labels
+  message("Feature edited | id=", edited_feature_id, " | geom type=", as.character(sf::st_geometry_type(edited_sfc))[1])
   updateFeaturesTable()
   updateFeatureLabels()
-  
-  # Notify the user about the update
-  showNotification(paste("Feature", edited_feature_id, "has been updated."), duration = 5, type = "message")
+  showNotification(paste("Feature", edited_feature_id, "foi atualizada."), duration = 5, type = "message")
 }
 
 
@@ -118,7 +143,7 @@ handleCellEdit <- function(input, new_data) {
   updateFeatureLabels()  # Update feature labels
   
   # Inform the user that the feature name has been updated
-  showNotification(paste("Feature name has been updated to:", new_value), duration = 5, type = "message")
+  showNotification(paste("O nome da feição foi atualizado para:", new_value), duration = 5, type = "message")
 }
 
 ### 4. Handle feature deletion
@@ -135,5 +160,5 @@ handleFeatureDeletion <- function(input, deleted_features) {
   updateFeaturesTable() # Update the data table
   updateFeatureLabels() # Update feature labels
   
-  showNotification(paste("Features", paste(feature_ids, collapse = ", "), "have been deleted."), duration = 5, type = "message") # Inform the user that the features have been deleted
+  showNotification(paste("Feição", paste(feature_ids, collapse = ", "), "foi deletada."), duration = 5, type = "message") # Inform the user that the features have been deleted
 }

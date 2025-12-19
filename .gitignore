@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+www/*.mp4    # ignore videos in www
+*.mp4        # and anywhere else, if needed
