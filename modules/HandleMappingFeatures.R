@@ -11,6 +11,23 @@ get_tipo_color <- function(tipo) {
   ifelse(is.na(col), "#2c3e50", col)
 }
 
+
+# Helper to extract the right feature id from the edit/delete event
+get_event_feature_id <- function(feat_event, existing_keys) {
+  props <- feat_event$features[[1]]$properties
+  # Gather candidates in priority order
+  cand <- c(props$layerId, props$id, props$`_leaflet_id`)
+  cand <- as.character(cand[!vapply(cand, is.null, logical(1))])
+  # Pick the first that exists in your features_list keys; fallback to last candidate
+  hit <- cand[cand %in% existing_keys]
+  fid <- if (length(hit)) hit[1] else cand[length(cand)]
+  message("handle: candidates=", paste(cand, collapse = ", "),
+          " | chosen id=", fid,
+          " | in_keys=", fid %in% existing_keys)
+  fid
+}
+
+### 1. Handle new feature draw
 handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
   feature_type <- feature$properties$feature_type  # Get the type of the geometry
   if (feature_type == "rectangle" | feature_type == "polygon") {
@@ -77,11 +94,10 @@ handleNewFeature <- function(input, feature, proj_crs = 32723, geo_crs = 4326) {
 ### input: input - the input object from the Shiny app
 ### edited_features - the edited feature object
 handleFeatureEdit <- function(input, edited_features, geo_crs = 4326) {
-  edited_feature_id <- edited_features$features[[1]]$properties$`_leaflet_id`
+  # Build sfc with CRS
   feature_type <- edited_features$features[[1]]$geometry$type
   edited_coords <- edited_features$features[[1]]$geometry$coordinates
   
-  # Build sfc with CRS
   if (feature_type == "Point") {
     coords <- unlist(edited_coords)
     edited_sfc <- sf::st_sfc(sf::st_point(coords), crs = geo_crs)
@@ -97,31 +113,34 @@ handleFeatureEdit <- function(input, edited_features, geo_crs = 4326) {
     return()
   }
   
-  # Replace geometry in the existing sf row
+  # Resolve the correct feature id (works for both drawn and loaded)
   current <- features_list()
-  fid <- as.character(edited_feature_id)
+  keys <- names(current)
+  fid <- get_event_feature_id(edited_features, keys)
+  
   if (!is.null(current[[fid]]) && inherits(current[[fid]], "sf")) {
     feat <- current[[fid]]
     sf::st_geometry(feat) <- edited_sfc
     current[[fid]] <- feat
     features_list(current)
+    message("Edited feature updated | id=", fid, " | type=", feature_type)
   } else {
-    # Fallback: wrap into a minimal sf with id/name/Tipo preserved as NA if missing
+    # If we still can't find it, create/update minimally to avoid losing the change
+    message("Edited id not found in features_list; creating minimal record | id=", fid)
     feat <- sf::st_sf(
       id = fid,
-      name = if ("name" %in% names(current[[fid]])) current[[fid]]$name else NA_character_,
-      Tipo = if ("Tipo" %in% names(current[[fid]])) current[[fid]]$Tipo else NA_character_,
-      color = if ("color" %in% names(current[[fid]])) current[[fid]]$color else "#2c3e50",
+      name = if (!is.null(current[[fid]]) && "name" %in% names(current[[fid]])) current[[fid]]$name else paste("Feature", fid),
+      Tipo = if (!is.null(current[[fid]]) && "Tipo" %in% names(current[[fid]])) current[[fid]]$Tipo else NA_character_,
+      color = if (!is.null(current[[fid]]) && "color" %in% names(current[[fid]])) current[[fid]]$color else "#2c3e50",
       geometry = edited_sfc
     )
     current[[fid]] <- feat
     features_list(current)
   }
   
-  message("Feature edited | id=", edited_feature_id, " | geom type=", as.character(sf::st_geometry_type(edited_sfc))[1])
   updateFeaturesTable()
   updateFeatureLabels()
-  showNotification(paste("Feature", edited_feature_id, "foi atualizada."), duration = 5, type = "message")
+  showNotification(paste("Feição", fid, "foi atualizada."), duration = 5, type = "message")
 }
 
 
@@ -151,14 +170,21 @@ handleCellEdit <- function(input, new_data) {
 ### input: input - the input object from the Shiny app
 ### deleted_features - the deleted feature object
 handleFeatureDeletion <- function(input, deleted_features) {
-  feature_ids <- sapply(deleted_features$features, function(f) f$properties$`_leaflet_id`) # Extract the feature IDs
+  current <- features_list()
+  keys <- names(current)
   
-  current_features <- features_list() # Retrieve the current features list
-  current_features <- current_features[!names(current_features) %in% feature_ids] # Remove the deleted features
-  features_list(current_features) # Save the updated list back to the reactive value
+  feature_ids <- vapply(deleted_features$features, function(f) {
+    props <- f$properties
+    cand <- c(props$layerId, props$id, props$`_leaflet_id`)
+    cand <- as.character(cand[!vapply(cand, is.null, logical(1))])
+    hit <- cand[cand %in% keys]
+    if (length(hit)) hit[1] else tail(cand, 1)
+  }, character(1))
   
-  updateFeaturesTable() # Update the data table
-  updateFeatureLabels() # Update feature labels
+  current <- current[!names(current) %in% feature_ids]
+  features_list(current)
   
-  showNotification(paste("Feição", paste(feature_ids, collapse = ", "), "foi deletada."), duration = 5, type = "message") # Inform the user that the features have been deleted
+  updateFeaturesTable()
+  updateFeatureLabels()
+  showNotification(paste("Feição", paste(feature_ids, collapse = ", "), "foi deletada."), duration = 5, type = "message")
 }

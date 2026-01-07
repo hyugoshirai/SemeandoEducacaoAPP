@@ -1,41 +1,37 @@
 # This function updates the draw toolbar in a Leaflet map.
-updateDrawToolbar <- function(session, color, fill_color) {
-  
-  # Define custom icon for the markers
-  custom_icon <-   makeAwesomeIcon(
+updateDrawToolbar <- function(session, color, fill_color, group = "Ambiente carregado") {
+  custom_icon <- makeAwesomeIcon(
     icon = "home",
     library = "glyphicon",
-    markerColor = color, # Possible values are "red", "darkred", "lightred", "orange", "beige", "green", "darkgreen", "lightgreen", "blue", "darkblue", "lightblue", "purple", "darkpurple", "pink", "cadetblue", "white", "gray", "lightgray", "black"
-    iconColor = color,
-    spin = FALSE,
-    extraClasses = NULL,
-    squareMarker = FALSE,
-    iconRotate = 0,
-    fontFamily = "monospace",
-    text = NULL
+    markerColor = color,   # must be one of the AwesomeMarkers palette names
+    iconColor = color
   )
   
   leafletProxy("map", session = session) %>%
     removeDrawToolbar() %>%
     addDrawToolbar(
+      targetGroup = group,  # this is the editable group
       polylineOptions = drawPolylineOptions(
         shapeOptions = drawShapeOptions(color = color)
       ),
       polygonOptions = drawPolygonOptions(
         showArea = TRUE, metric = TRUE,
-        shapeOptions = drawShapeOptions(color = color, fillColor = fill_color), 
+        shapeOptions = drawShapeOptions(color = color, fillColor = fill_color, fillOpacity = 0.4),
+        repeatMode = FALSE
+      ),
+      rectangleOptions = drawRectangleOptions(
+        showArea = TRUE, metric = TRUE,
+        shapeOptions = drawShapeOptions(color = color, fillColor = fill_color, fillOpacity = 0.4),
         repeatMode = FALSE
       ),
       circleOptions = FALSE,
-      rectangleOptions = drawRectangleOptions(
-        showArea = TRUE, metric = TRUE,
-        shapeOptions = drawShapeOptions(color = color, fillColor = fill_color), 
-        repeatMode = FALSE
-      ),
+      circleMarkerOptions = FALSE,
       markerOptions = drawMarkerOptions(markerIcon = custom_icon),
-      circleMarkerOptions = FALSE, 
       singleFeature = FALSE,
-      editOptions = editToolbarOptions()
+      editOptions = editToolbarOptions(
+        edit = TRUE,
+        remove = TRUE
+      )
     )
 }
 
