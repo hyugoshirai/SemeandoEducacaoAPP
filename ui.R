@@ -64,6 +64,7 @@ ui <- fluidPage(
     DTOutput("features_table"),
     downloadButton("download_shapefile", "Baixar camadas", icon = icon("save")),  # Download button for shapefile
     actionButton("load_env_btn", "Carregar camadas", icon = icon("folder-open")), # Button to load the environment
+    downloadButton("download_shapefile", "Baixar camadas"),  # Download button for shapefile
     tags$details(
       open = NA, # starts expanded
       tags$summary(
